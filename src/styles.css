@@ -1,0 +1,194 @@
+@font-face{
+    font-family: "Instrument Serif";
+    src: url("./assets/fonts/InstrumentSerif-Regular.ttf") format("truetype");
+}
+
+@font-face{
+    font-family: "Hanken Grotesk";
+    src: url("./assets/fonts/HankenGrotesk-VariableFont_wght.ttf") format("truetype");
+}
+
+*, *::before, *::after{
+    box-sizing: border-box;
+}
+
+*{
+    margin: 0;
+}
+
+body{
+  background: linear-gradient(#2F73D8, #9abbe2);
+  font-family: "Hanken Grotesk", sans-serif;
+}
+
+main{
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;             
+  min-height: 100dvh;      
+  max-width: 70rem;
+  padding-top: 2.6rem;
+  margin-inline: auto;     
+  padding-inline: 1rem;
+}   
+
+.header{
+    display: flex;
+    color: white;
+}
+
+.header .left-header{
+    flex: 1;
+}
+
+.header .location-container{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.header .location-text{
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: 0.04rem;
+}
+
+.header .location-icon{
+    color: white;
+    height: 1.6rem;
+    width: 1.6rem;
+    filter: invert(1);
+}
+
+.header .date-time-container{
+    display: flex;
+    font-family: 100;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.717);
+}
+
+.header .right-header{
+    display: flex;
+    align-items: center;
+}
+
+.header .right-box{
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0.8rem;
+    padding: 4px;
+}
+
+.header button{
+    border: none;
+    padding: 0.4rem 0.9rem;
+    font-family: inherit;
+    border-radius: 0.6rem;
+    font-weight: 600;
+}
+
+.current-weather{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.current-weather .current-left{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.current-weather .current-icon{
+    color: white;
+    height: 2rem;
+    width: 2rem;
+    filter: brightness(0) invert(1);
+}
+
+.current-weather .current-condition{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-weight: 500;
+    font-size: 1.3rem;
+}
+
+.current-weather .current-temperature{
+    font-family: "Instrument Serif", sans-serif;
+    font-size: 10rem;
+    color: white;
+    line-height: 0.8;
+}
+
+.current-weather .degree{
+    font-size: 3.5rem;
+    font-weight: 100;
+    vertical-align: 3rem;
+}
+
+.current-weather .current-icon-big{
+    height: 11rem;
+    width: 11rem;
+    filter: brightness(0) invert(1);
+}
+
+.current-weather .feel-text{
+    color: white;
+    margin-right: 1.5rem;
+}
+
+.current-weather .feel-minmax{
+    color: rgba(255, 255, 255, 0.717);
+}
+
+.current-weather .current-description{
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.717);
+    width: 30rem;
+}
+
+.details{
+    display: flex;
+    gap: 10px;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.details .detail-card{
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    width: 11rem;
+    padding: 0.8rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 10px;
+}
+
+.details .card-title{
+    color:rgba(255, 255, 255, 0.717);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.details .card-value{
+    color: white;
+
+}
+
+.hourly-forecast{
+    display: flex;
+    padding: 0.8rem;
+    border-radius: 1rem;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hourly-forecast .hourly-card-container{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
