@@ -8,20 +8,16 @@ import cloudySunIcon from "./assets/icons/cloudy-sun.svg";
 import snowFallIcon from "./assets/icons/snowfall.svg";
 import moonIcon from "./assets/icons/moon.svg";
 import cloudyMoonIcon from "./assets/icons/cloudy-moon.svg";
+import fogIcon from "./assets/icons/fog.svg";
 
-const icons = {
-  location: "assets/location.svg",
-  rain: "assets/location.rain.svg",
-};
-
-const API_KEY = "";
-const API = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Kuala%20Lumpur%2C%20Malaysia/next7days?key=${API_KEY}`;
+const API_KEY = "CJX9WR2QJ598HS9624H67NDEF";
+const API = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Lisbon,Portugal/next7days?key=${API_KEY}`;
 
 let weatherData = null;
 
 const weatherIcons = {
   rain: rainIcon,
-  fog: rainIcon,
+  fog: fogIcon,
   wind: sunIcon,
   cloudy: cloudIcon,
   "clear-day": sunIcon,
@@ -63,7 +59,16 @@ const formatDateTime = (epoch, timezone) => {
   return `${datePart} · ${timePart}`;
 };
 
+const formatDay = (epoch, timezone) => {
+  const date = new Date(epoch * 1000);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    timeZone: timezone,
+  });
+};
+
 const formatTime = (timeStr) => {
+  //todo: merge with formattimehr
   const [hours, minutes] = timeStr.split(":");
   const h = Number(hours);
   const period = h >= 12 ? "PM" : "AM";
@@ -71,7 +76,16 @@ const formatTime = (timeStr) => {
   return `${hour12} : ${minutes} ${period}`;
 };
 
+const formatTimeHr = (timeStr) => {
+  const hours = timeStr.split(":")[0];
+  const h = Number(hours);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12} ${period}`;
+};
+
 const el = (tag, cls, attrs = {}) => {
+  //element creation helper
   const e = document.createElement(tag);
   if (cls) e.className = cls;
   Object.entries(attrs).forEach(([k, v]) => {
@@ -105,11 +119,44 @@ const buildDetails = (weatherData) => {
   };
 };
 
-const next8Hours = (weatherData) => {
-  const { days } = weatherData;
-  return {
-    // todo
-  };
+const build8Hours = (weatherData) => {
+  const todayHours = weatherData.days[0].hours;
+  const tomorrowHours = weatherData.days[1].hours;
+  const allHours = [...todayHours, ...tomorrowHours];
+  const currentHour = parseInt(weatherData.currentConditions.datetime, 10);
+  return allHours.slice(currentHour, currentHour + 8).map((h) => ({
+    time: formatTimeHr(h.datetime),
+    icon: weatherIcons[h.icon.split(",")[0]],
+    temp: Math.round(h.temp),
+  }));
+};
+
+const build7days = (weatherData) => {
+  const timezone = weatherData.timezone;
+  return weatherData.days.slice(0, 7).map((d, i) => ({
+    day: formatDay(d.datetimeEpoch, timezone),
+    icon: weatherIcons[d.icon.split(",")[0]],
+    "daily-low": Math.round(d.tempmin),
+    "daily-high": Math.round(d.tempmax),
+    "weekly-low": getWeeklyExtremes(weatherData).low,
+    "weekly-high": getWeeklyExtremes(weatherData).high,
+  }));
+};
+
+const getWeeklyExtremes = (weatherData) => {
+  const daily = weatherData.days;
+  const weeklyExtremes = daily.reduce(
+    (acc, curr) => {
+      if (curr.tempmax > acc.high) acc.high = Math.round(curr.tempmax);
+      if (curr.tempmin < acc.low) acc.low = Math.round(curr.tempmin);
+      return acc;
+    },
+    {
+      high: -Infinity,
+      low: Infinity,
+    },
+  );
+  return weeklyExtremes;
 };
 
 const renderHeader = () => {
@@ -132,39 +179,35 @@ const renderCurrentConditions = () => {
   const currentFeel = document.querySelector(".current-feel");
   const currentDescription = document.querySelector(".current-description");
   const currentIcon = document.querySelector(".current-right");
-
   currentCondition.appendChild(
     el("img", "current-icon", {
       src: `${weatherIcons[weatherData.currentConditions.icon]}`,
     }),
   );
-
   currentCondition.appendChild(
     el("p", "current-condition-text", {
       text: `${weatherData.currentConditions.conditions}`,
     }),
   );
-
   currentTemperature.textContent = `${Math.round(
     weatherData.currentConditions.temp,
   )}`;
-
-  currentTemperature.appendChild(el("span", "degree", { text: "°" }));
-
+  currentTemperature.appendChild(
+    el("span", "degree", {
+      text: "°",
+    }),
+  );
   currentFeel.appendChild(
     el("span", "feel-text", {
       text: `Feels like ${Math.round(weatherData.days[0].feelslike)}°`,
     }),
   );
-
   currentFeel.appendChild(
     el("span", "feel-minmax", {
       text: `High ${Math.round(weatherData.days[0].feelslikemax)}°  ·  Low ${Math.round(weatherData.days[0].feelslikemin)}°`,
     }),
   );
-
   currentDescription.textContent = weatherData.description;
-
   currentIcon.appendChild(
     el("img", "current-icon-big", {
       src: `${weatherIcons[weatherData.currentConditions.icon]}`,
@@ -187,6 +230,41 @@ const renderDetails = () => {
 
 const renderHourly = () => {
   const hourlyContainer = document.querySelector(".hourly-card-container");
+  const hourlyData = build8Hours(weatherData);
+  hourlyData.forEach((d, i) => {
+    const hourCard = el("div", "hourly-card");
+    const timeText = i === 0 ? "NOW" : d.time;
+    const hourlyTime = el("p", "hourly-time", { text: timeText });
+    const hourlyIcon = el("img", "hourly-icon", { src: d.icon });
+    const hourlyTemp = el("p", "hourly-temp", { text: `${d.temp}°` });
+    hourCard.appendChild(hourlyTime);
+    hourCard.appendChild(hourlyIcon);
+    hourCard.appendChild(hourlyTemp);
+    hourlyContainer.appendChild(hourCard);
+  });
+};
+
+const renderDaily = () => {
+  //tody + day, icons, weekly high/low, today highlow
+  //css = today + day, icons, today high, bar, today low.
+  const dailyContainer = document.querySelector(".daily-card-container");
+  const dailyData = build7days(weatherData);
+  dailyData.forEach((d, i) => {
+    const dailyCard = el("div", "daily-card");
+    const dayText = i === 0 ? "Today" : d.day;
+    const dailyDay = el("p", "daily-day", { text: dayText });
+    const dailyIcon = el("img", "daily-icon", { src: d.icon });
+    const dailyMin = el("p", "daily-min", { text: d["daily-low"] });
+    const dailyMax = el("p", "daily-max", { text: d["daily-high"] });
+    const dailyRange = el("div", "range-bar");
+    dailyCard.appendChild(dailyDay);
+    dailyCard.appendChild(dailyIcon);
+    dailyCard.appendChild(dailyMin);
+    dailyCard.appendChild(dailyRange);
+    dailyCard.appendChild(dailyMax);
+    dailyContainer.appendChild(dailyCard);
+  });
+  console.log(build7days(weatherData));
 };
 
 const render = () => {
@@ -194,6 +272,7 @@ const render = () => {
   renderCurrentConditions();
   renderDetails();
   renderHourly();
+  renderDaily();
 };
 
 render();

@@ -28,6 +28,7 @@ main{
   min-height: 100dvh;      
   max-width: 70rem;
   padding-top: 2.6rem;
+  padding-bottom: 2.6rem;
   margin-inline: auto;     
   padding-inline: 1rem;
 }   
@@ -178,9 +179,13 @@ main{
 
 }
 
-.hourly-forecast{
+.hourly-forecast,
+.daily{
+    color:rgba(255, 255, 255, 0.717);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
     display: flex;
-    padding: 0.8rem;
+    padding: 1.5rem;
     border-radius: 1rem;
     flex-direction: column;
     background-color: rgba(255, 255, 255, 0.1);
@@ -191,4 +196,65 @@ main{
     display: flex;
     justify-content: space-around;
     align-items: center;
+    padding: 1rem;
 }
+
+.hourly-forecast .hourly-card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.hourly-forecast .hourly-temp{
+    color: white;
+    font-size: 1.1rem;
+}
+
+.hourly-forecast .hourly-icon{
+    height: 2.2rem;
+    width: 2.2rem;
+    filter: brightness(0) invert(1);
+}
+
+.daily{
+    padding: 1.5rem; 
+}
+
+.daily .daily-card-container{
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin-top: 1rem;
+    gap: 1rem;
+}
+
+.daily .daily-card{
+    gap: 2rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    display: grid;
+    grid-template-columns: 2.8rem max-content max-content 3fr max-content;
+    align-items: center;
+    
+}
+
+.daily .daily-day{
+    color: white;
+    font-size: 1rem;
+}
+
+.daily .daily-icon{
+    height: 1.8rem;
+    width: 1.8rem;
+    filter: brightness(0) invert(1);
+}
+
+.daily .range-bar{
+}
+
+.daily .daily-min, .daily .daily-max{
+    font-size: 1rem;
+}
+
