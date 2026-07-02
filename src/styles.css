@@ -8,6 +8,14 @@
     src: url("./assets/fonts/HankenGrotesk-VariableFont_wght.ttf") format("truetype");
 }
 
+:root {
+  --color-surface: rgba(255, 255, 255, 0.1);
+  --color-border: rgba(255, 255, 255, 0.3);
+  --color-toggle-bg: rgba(255, 255, 255, 0.3);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.717);
+}
+
 *, *::before, *::after{
     box-sizing: border-box;
 }
@@ -17,7 +25,7 @@
 }
 
 body{
-  background: linear-gradient(#2F73D8, #9abbe2);
+  background: linear-gradient(var(--color-bg-start), var(--color-bg-end));
   font-family: "Hanken Grotesk", sans-serif;
 }
 
@@ -35,7 +43,7 @@ main{
 
 .header{
     display: flex;
-    color: white;
+    color: var(--color-text-primary);
 }
 
 .header .left-header{
@@ -56,7 +64,7 @@ main{
 }
 
 .header .location-icon{
-    color: white;
+    color: var(--color-text-primary);
     height: 1.6rem;
     width: 1.6rem;
     filter: invert(1);
@@ -66,7 +74,7 @@ main{
     display: flex;
     font-family: 100;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.717);
+    color: var(--color-text-secondary);
 }
 
 .header .right-header{
@@ -75,17 +83,55 @@ main{
 }
 
 .header .right-box{
-    background-color: rgba(255, 255, 255, 0.3);
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.2);
     border-radius: 0.8rem;
-    padding: 4px;
+    padding: 3px;
 }
 
-.header button{
+.header .unit-toggle{
+    position: relative;
+    display: flex;
     border: none;
-    padding: 0.4rem 0.9rem;
+    background: none;
     font-family: inherit;
-    border-radius: 0.6rem;
     font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    outline: none;
+}
+
+.header .toggle-slider{
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background-color: var(--color-text-primary);
+    border-radius: 0.6rem;
+    transition: transform 0.2s ease;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.header .unit-toggle[data-unit="F"] .toggle-slider{
+    transform: translateX(calc(100% + 3px));
+}
+
+.header .toggle-label{
+    position: relative;
+    z-index: 1;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.6rem;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+.header .toggle-label.active{
+    color: #2F73D8;
 }
 
 .current-weather{
@@ -101,7 +147,7 @@ main{
 }
 
 .current-weather .current-icon{
-    color: white;
+    color: var(--color-text-primary);
     height: 2rem;
     width: 2rem;
     filter: brightness(0) invert(1);
@@ -111,7 +157,7 @@ main{
     display: flex;
     align-items: center;
     gap: 10px;
-    color: white;
+    color: var(--color-text-primary);
     font-weight: 500;
     font-size: 1.3rem;
 }
@@ -119,7 +165,7 @@ main{
 .current-weather .current-temperature{
     font-family: "Instrument Serif", sans-serif;
     font-size: 10rem;
-    color: white;
+    color: var(--color-text-primary);
     line-height: 0.8;
 }
 
@@ -136,17 +182,17 @@ main{
 }
 
 .current-weather .feel-text{
-    color: white;
+    color: var(--color-text-primary);
     margin-right: 1.5rem;
 }
 
 .current-weather .feel-minmax{
-    color: rgba(255, 255, 255, 0.717);
+    color: var(--color-text-secondary);
 }
 
 .current-weather .current-description{
     font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.717);
+    color: var(--color-text-secondary);
     width: 30rem;
 }
 
@@ -158,38 +204,37 @@ main{
 }
 
 .details .detail-card{
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--color-surface);
     display: flex;
     flex-direction: column;
     width: 11rem;
     padding: 0.8rem;
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--color-border);
     gap: 10px;
 }
 
 .details .card-title{
-    color:rgba(255, 255, 255, 0.717);
+    color: var(--color-text-secondary);
     font-size: 0.8rem;
     letter-spacing: 1px;
 }
 
 .details .card-value{
-    color: white;
-
+    color: var(--color-text-primary);
 }
 
 .hourly-forecast,
 .daily{
-    color:rgba(255, 255, 255, 0.717);
+    color: var(--color-text-secondary);
     font-size: 0.8rem;
     letter-spacing: 1px;
     display: flex;
     padding: 1.5rem;
     border-radius: 1rem;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
 }
 
 .hourly-forecast .hourly-card-container{
@@ -207,7 +252,7 @@ main{
 }
 
 .hourly-forecast .hourly-temp{
-    color: white;
+    color: var(--color-text-primary);
     font-size: 1.1rem;
 }
 
@@ -224,10 +269,7 @@ main{
 .daily .daily-card-container{
     display: flex;
     flex-direction: column;
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     margin-top: 1rem;
-    gap: 1rem;
 }
 
 .daily .daily-card{
@@ -235,13 +277,17 @@ main{
     padding-top: 0.8rem;
     padding-bottom: 0.8rem;
     display: grid;
-    grid-template-columns: 2.8rem max-content max-content 3fr max-content;
+    grid-template-columns: 2.8rem 2.8rem 2.8rem 1fr 2.8rem;
     align-items: center;
-    
+    border-top: 1px solid var(--color-border);
+}
+
+.daily .daily-card:last-child{
+    border-bottom: 1px solid var(--color-border);
 }
 
 .daily .daily-day{
-    color: white;
+    color: var(--color-text-primary);
     font-size: 1rem;
 }
 
@@ -251,10 +297,27 @@ main{
     filter: brightness(0) invert(1);
 }
 
-.daily .range-bar{
+.daily .weekly-range-bar{
+    position: relative;
+    height: 8px;
+    width: 100%;
+    border-radius: 5px; 
+    overflow: hidden;
+    min-height: 8px;
+    background-color: var(--color-border);
+}
+
+.daily .daily-range-bar{
+    position: absolute;
+    background-color: var(--color-text-primary);
+    height: 100%;
+    border-radius: 5px;
+    left: var(--left, 0%);
+    width: var(--width, 100%);
 }
 
 .daily .daily-min, .daily .daily-max{
+    text-align: center;
     font-size: 1rem;
 }
 
