@@ -25,7 +25,6 @@
 }
 
 body{
-  background: linear-gradient(var(--color-bg-start), var(--color-bg-end));
   font-family: "Hanken Grotesk", sans-serif;
 }
 
@@ -51,6 +50,7 @@ main{
 }
 
 .header .location-container{
+    position: relative;
     display: flex;
     gap: 8px;
     align-items: center;
@@ -67,12 +67,12 @@ main{
     color: var(--color-text-primary);
     height: 1.6rem;
     width: 1.6rem;
-    filter: invert(1);
+    filter: brightness(0) invert(1);
 }
 
 .header .date-time-container{
     display: flex;
-    font-family: 100;
+    font-weight: 300;
     font-size: 0.9rem;
     color: var(--color-text-secondary);
 }
@@ -132,6 +132,66 @@ main{
 
 .header .toggle-label.active{
     color: #2F73D8;
+}
+
+.header .search-container{
+    z-index: 1;
+    position: absolute;
+    top: calc(100% + 20px); 
+    left: 0;
+    padding: 1rem;
+    border-radius: 15px;
+    width: 600px;
+    background-color: rgba(40, 40, 40, 0.3);
+    backdrop-filter: blur(24px);
+}
+
+.header .search-input{
+    width: 100%;
+    border-radius: 6px;
+    padding: 8px;
+    border: none;
+    background-color: rgba(135, 135, 135, 0.3);
+    color: var(--color-text-primary);
+}
+
+.header .search-input:focus{
+    outline: none;
+}
+
+.header .search-input::placeholder {
+  color: var(--color-text-primary);
+  opacity: 1;   
+}
+
+.header .search-results{
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+}
+
+.header .location{
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.header .location-detail{
+    font-weight: 300;
+    font-size: 0.9rem;
+}
+
+.header .location-country{
+    font-weight: 300;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.header .search-status-text{
+    font-weight: 300;
+    font-size: 0.9rem;
 }
 
 .current-weather{

@@ -21,6 +21,7 @@
   "homepage": "https://github.com/jeung2700/weather-app#readme",
   "devDependencies": {
     "css-loader": "^7.1.4",
+    "dotenv-webpack": "^9.0.0",
     "html-loader": "^5.1.0",
     "html-webpack-plugin": "^5.6.7",
     "style-loader": "^4.0.0",
@@ -29,4 +30,3 @@
     "webpack-dev-server": "^5.2.5"
   }
 }
-

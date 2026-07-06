@@ -1,5 +1,4 @@
 import "./styles.css";
-import locationIcon from "./assets/icons/location.svg";
 import rainIcon from "./assets/icons/rain.svg";
 import cloudIcon from "./assets/icons/cloud.svg";
 import sunIcon from "./assets/icons/sun.svg";
@@ -9,13 +8,19 @@ import snowFallIcon from "./assets/icons/snowfall.svg";
 import moonIcon from "./assets/icons/moon.svg";
 import cloudyMoonIcon from "./assets/icons/cloudy-moon.svg";
 import fogIcon from "./assets/icons/fog.svg";
+import searchIcon from "./assets/icons/search.svg";
+import locationIcon from "./assets/icons/location.svg";
 
-const API_KEY = "";
-const API = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Kuala%20Lumpur/next7days?key=${API_KEY}`;
+const API_KEY = process.env.WEATHER_API_KEY;
 
 let weatherData = null;
-
+let searchOpen = false;
 let currentUnit = "C";
+let status = "idle";
+let results = [];
+let query = "";
+let currentController = null;
+let debounceTimer;
 
 const weatherIcons = {
   rain: rainIcon,
@@ -31,9 +36,11 @@ const weatherIcons = {
 
 const COMPASS_DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 
-const fetchAPI = async () => {
+const fetchWeatherAPI = async (location) => {
   try {
-    const response = await fetch(API);
+    const response = await fetch(
+      `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}/next7days?key=${API_KEY}`,
+    );
     if (!response.ok) throw new Error(`Weather API error: ${response.status}`);
     return await response.json();
   } catch (error) {
@@ -41,9 +48,6 @@ const fetchAPI = async () => {
     return null;
   }
 };
-
-weatherData = await fetchAPI();
-console.log(weatherData);
 
 const formatDateTime = (epoch, timezone) => {
   const date = new Date(epoch * 1000);
@@ -150,13 +154,14 @@ const build8Hours = (weatherData) => {
 
 const build7days = (weatherData) => {
   const timezone = weatherData.timezone;
+  const { low: weeklyLow, high: weeklyHigh } = getWeeklyExtremes(weatherData);
   return weatherData.days.slice(0, 7).map((d, i) => ({
     day: formatDay(d.datetimeEpoch, timezone),
     icon: weatherIcons[d.icon.split(",")[0]],
     "daily-low": Math.round(d.tempmin),
     "daily-high": Math.round(d.tempmax),
-    "weekly-low": getWeeklyExtremes(weatherData).low,
-    "weekly-high": getWeeklyExtremes(weatherData).high,
+    "weekly-low": weeklyLow,
+    "weekly-high": weeklyHigh,
   }));
 };
 
@@ -195,16 +200,29 @@ const rerenderUnit = (unit) => {
     const f = parseFloat(t.dataset.f);
     if (!isNaN(f)) t.textContent = displayTemp(f);
   });
+  document.querySelector(".unit-toggle").dataset.unit = unit;
+  document
+    .querySelectorAll(".toggle-label")
+    .forEach((l) => l.classList.remove("active"));
+  document
+    .querySelectorAll(".toggle-label")
+    [unit === "C" ? 0 : 1].classList.add("active");
 };
 
 const renderHeader = () => {
   const location = document.querySelector(".location-container");
   const time = document.querySelector(".date-time-container");
+  location.appendChild(el("img", "location-icon", { src: `${locationIcon}` }));
   location.appendChild(
     el("p", "location-text", {
       text: `${weatherData.address.split(",").join(", ")}`,
     }),
   );
+  const searchIconEl = el("img", "location-icon", { src: `${searchIcon}` });
+  searchIconEl.id = "search";
+  searchIconEl.addEventListener("click", () => openSearch());
+  location.appendChild(searchIconEl);
+
   time.textContent = formatDateTime(
     weatherData.currentConditions.datetimeEpoch,
     weatherData.timezone,
@@ -223,7 +241,7 @@ const renderCurrentConditions = () => {
     }),
   );
   currentCondition.appendChild(
-    el("p", "current-condition-text", {
+    el("p", "", {
       text: `${weatherData.currentConditions.conditions}`,
     }),
   );
@@ -302,7 +320,7 @@ const renderHourly = () => {
 };
 
 const renderDaily = () => {
-  //tody + day, icons, weekly high/low, today highlow
+  //today + day, icons, weekly high/low, today highlow
   //css = today + day, icons, today high, bar, today low.
   const dailyContainer = document.querySelector(".daily-card-container");
   const dailyData = build7days(weatherData);
@@ -348,23 +366,155 @@ const renderDaily = () => {
   });
 };
 
+const renderSearchLocation = () => {
+  const resultsArea = document.querySelector(".search-results");
+  resultsArea.innerHTML = "";
+  if (status === "idle") {
+    resultsArea.textContent = "E.g. Lisbon";
+  } else if (status === "loading") {
+    resultsArea.textContent = "Searching...";
+  } else if (status === "empty") {
+    resultsArea.textContent = `No cities found for ${query}`;
+  } else if (status === "error") {
+    resultsArea.textContent = "Something went wrong.";
+  } else if (status === "success") {
+    results.forEach((l) => {
+      const location = el("div", "location");
+      location.addEventListener("click", async () => {
+        weatherData = await fetchWeatherAPI(l.display_name);
+        closeSearch();
+        render();
+      });
+      const parts = l.display_name.split(",").map((s) => s.trim());
+      const country = parts.pop();
+      const locationCity = parts.join(", ");
+      const locationDetail = el("span", "location-detail", {
+        text: locationCity,
+      });
+      const locationCountry = el("span", "location-country", {
+        text: country,
+      });
+      location.appendChild(locationDetail);
+      location.appendChild(locationCountry);
+      resultsArea.appendChild(location);
+    });
+  }
+};
+
+const openSearch = () => {
+  if (searchOpen) return;
+  searchOpen = true;
+  const locationContainer = document.querySelector(".location-container");
+  const searchContainer = el("div", "search-container");
+  const input = el("input", "search-input", {
+    placeholder: "Search for a city...",
+  });
+  const resultsArea = el("div", "search-results");
+  input.addEventListener("input", async (e) => {
+    query = e.target.value;
+    if (query.length < 3) {
+      status = "idle";
+      renderSearchLocation();
+      return;
+    }
+    status = "loading";
+    renderSearchLocation();
+
+    if (currentController) currentController.abort();
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(async () => {
+      currentController = new AbortController();
+
+      try {
+        results = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=7`,
+          {
+            signal: currentController.signal,
+          },
+        ).then((r) => r.json());
+        if (results) {
+          results = results.filter((r) =>
+            ["city", "town", "village", "municipality"].includes(r.addresstype),
+          );
+        }
+        status = results.length ? "success" : "empty";
+      } catch (error) {
+        console.log(error);
+        if (error.name === "AbortError") return;
+        status = "error";
+      }
+      renderSearchLocation();
+    }, 300);
+  });
+  searchContainer.appendChild(input);
+  searchContainer.appendChild(resultsArea);
+  locationContainer.appendChild(searchContainer);
+  renderSearchLocation();
+  setTimeout(() => {
+    document.addEventListener("click", onOutsideClick);
+  }, 0);
+};
+
+const closeSearch = () => {
+  if (!searchOpen) return;
+  searchOpen = false;
+  const searchContainer = document.querySelector(".search-container");
+  searchContainer.remove();
+};
+
+const onOutsideClick = (e) => {
+  const wrapper = document.querySelector(".location-container");
+  if (!wrapper.contains(e.target)) {
+    closeSearch();
+    document.removeEventListener("click", onOutsideClick);
+  }
+};
+
+const clearRender = () => {
+  document.querySelector(".location-container").innerHTML = "";
+  document.querySelector(".date-time-container").innerHTML = "";
+  document.querySelector(".current-condition").innerHTML = "";
+  document.querySelector(".current-temperature").innerHTML = "";
+  document.querySelector(".current-feel").innerHTML = "";
+  document.querySelector(".current-description").innerHTML = "";
+  document.querySelector(".current-right").innerHTML = "";
+  document.querySelector(".details").innerHTML = "";
+  document.querySelector(".hourly-card-container").innerHTML = "";
+  document.querySelector(".daily-card-container").innerHTML = "";
+};
+
 const render = () => {
+  clearRender();
   setBgGradient(weatherData.currentConditions.icon);
   renderHeader();
   renderCurrentConditions();
   renderDetails();
   renderHourly();
   renderDaily();
-  document.querySelector(".unit-toggle").dataset.unit = "C";
+  rerenderUnit(currentUnit);
 };
 
-render();
+const init = async () => {
+  try {
+    const response = await fetch("https://ipapi.co/json/");
+    const getIP = await response.json();
+    weatherData = await fetchWeatherAPI(getIP.city);
+  } catch {
+    weatherData = await fetchWeatherAPI("Kuala Lumpur");
+  }
+  if (!weatherData) {
+    weatherData = await fetchWeatherAPI("Kuala Lumpur");
+  }
+  render();
 
-document.querySelector(".unit-toggle").addEventListener("click", () => {
-  const newUnit = currentUnit === "C" ? "F" : "C";
-  rerenderUnit(newUnit);
-  document.querySelector(".unit-toggle").dataset.unit = newUnit;
-  document
-    .querySelectorAll(".toggle-label")
-    .forEach((l) => l.classList.toggle("active"));
-});
+  document.querySelector(".unit-toggle").addEventListener("click", () => {
+    rerenderUnit(currentUnit === "C" ? "F" : "C");
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSearch();
+  });
+};
+
+init();
